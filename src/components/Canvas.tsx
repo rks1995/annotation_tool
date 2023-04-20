@@ -12,6 +12,8 @@ const Canvas = () => {
   const [startY, setStartY] = useState<any>(null);
   const [deltaX, setDeltaX] = useState<any>(null);
   const [deltaY, setDeltaY] = useState<any>(null);
+  const [isRegionSelected, setIsRegionSelected] = useState(false);
+  const [whichBoxSelected, setWhichBoxSelected] = useState<any>(null); // this will store the box index;
   const [xDistance, setXDistance] = useState<any>(null);
   const [yDistance, setYDistance] = useState<any>(null);
   const [touchStart, setTouchStart] = useState<any>(null);
@@ -33,15 +35,28 @@ const Canvas = () => {
           ctx.strokeRect(startX, startY, deltaX, deltaY);
         }
         boundingBoxes.forEach((box, index) => {
-          ctx.strokeStyle = "green";
-          ctx.strokeRect(box.x, box.y, box.width, box.height);
+          if (whichBoxSelected === index) {
+            ctx.fillStyle = "#c8c9";
+            ctx.fillRect(box.x, box.y, box.width, box.height);
+            ctx.strokeStyle = "black";
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
+          } else {
+            ctx.strokeStyle = "green";
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
+          }
+
+          // canvas.addEventListener("click", () => deleteBox(index));
         });
       };
     }
-  }, [isDragging, deltaX, deltaY, boundingBoxes]);
+  }, [isDragging, deltaX, deltaY, whichBoxSelected, boundingBoxes]);
 
   function handleZoomIn() {
     setScale(scale * 1.2);
+  }
+
+  function deleteBox(index: number) {
+    console.log(index);
   }
 
   function handleZoomOut() {
@@ -56,11 +71,48 @@ const Canvas = () => {
     });
   }
 
+  function selectRegion(event: any) {
+    const mouseX = event.nativeEvent.offsetX;
+    const mouseY = event.nativeEvent.offsetY;
+
+    let boxIndex = -1;
+
+    boundingBoxes.forEach((box, index) => {
+      if (
+        mouseX - box.x >= 0 &&
+        mouseX <= box.x + box.width &&
+        mouseY - box.y >= 0 &&
+        mouseY <= box.y + box.height
+      ) {
+        if (boxIndex !== -1) {
+          const prevBox = boundingBoxes[boxIndex];
+          if (
+            prevBox.x < box.x &&
+            prevBox.x + prevBox.width > box.x + box.width &&
+            prevBox.y < box.y &&
+            prevBox.y + prevBox.height > box.y + box.height
+          ) {
+            boxIndex = index;
+          }
+        } else {
+          boxIndex = index;
+        }
+      }
+    });
+    setWhichBoxSelected(boxIndex);
+    // reset all the coordinates to 0 when region is selected
+    setStartX(0);
+    setStartY(0);
+    setDeltaX(0);
+    setDeltaY(0);
+  }
+
   function handleMouseDown(event: any) {
     if (!disableDocMovement) {
       setIsDragging(true);
     } else {
       setIsDrawing(true);
+      setWhichBoxSelected(-1);
       setStartX(event.nativeEvent.offsetX);
       setStartY(event.nativeEvent.offsetY);
     }
@@ -82,8 +134,6 @@ const Canvas = () => {
       }
     }
   }
-
-  console.log(boundingBoxes);
 
   function handleMouseUp(event: any) {
     console.log("mouse up");
@@ -121,6 +171,7 @@ const Canvas = () => {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onDoubleClick={selectRegion}
       />
       <div
         style={{
