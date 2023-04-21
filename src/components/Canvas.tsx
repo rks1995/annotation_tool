@@ -78,12 +78,19 @@ const Canvas = () => {
     let boxIndex = -1;
 
     boundingBoxes.forEach((box, index) => {
+      const x1 = box.x;
+      const x2 = box.x + box.width;
+      const y1 = box.y;
+      const y2 = box.y + box.height;
+
       if (
-        mouseX - box.x >= 0 &&
-        mouseX <= box.x + box.width &&
-        mouseY - box.y >= 0 &&
-        mouseY <= box.y + box.height
+        Math.min(x1, x2) <= mouseX &&
+        mouseX <= Math.max(x1, x2) &&
+        Math.min(y1, y2) <= mouseY &&
+        mouseY <= Math.max(y1, y2)
       ) {
+        console.log("im inside");
+
         if (boxIndex !== -1) {
           const prevBox = boundingBoxes[boxIndex];
           if (
@@ -115,6 +122,17 @@ const Canvas = () => {
       setWhichBoxSelected(-1);
       setStartX(event.nativeEvent.offsetX);
       setStartY(event.nativeEvent.offsetY);
+    }
+  }
+
+  function handleKeyDown(event: any) {
+    if (event.key === "Delete" || event.key === "Backspace") {
+      if (whichBoxSelected !== -1) {
+        const newBoxes = boundingBoxes.filter(
+          (box, index) => whichBoxSelected !== index
+        );
+        setBoundingBoxes(newBoxes);
+      }
     }
   }
 
@@ -166,12 +184,14 @@ const Canvas = () => {
           top: 0,
           left: 0,
         }}
+        tabIndex={-1}
         width={900}
         height={800}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onDoubleClick={selectRegion}
+        onKeyDown={handleKeyDown}
       />
       <div
         style={{
