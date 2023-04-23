@@ -1,0 +1,17 @@
+{
+  "eslint.enable": true,
+  "files.autoSave": "afterDelay",
+  "search.exclude": {
+    "package-lock.json": true,
+    "node_modules": true
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": [
+      "source.fixAll.eslint",
+      "source.addMissingImports",
+      "source.removeUnusedImports"
+    ]
+  }
+}
