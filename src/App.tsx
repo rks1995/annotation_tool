@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import Canvas from './components/Canvas';
-// import { Canvas1 } from './components/Test';
 
 function App() {
   return (
@@ -9,7 +7,6 @@ function App() {
       id="iframeHolder"
     >
       <Canvas />
-      {/* <Canvas1 /> */}
     </div>
   );
 }
