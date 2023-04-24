@@ -126,41 +126,63 @@ export const cregIsInside = ({
   return isInside;
 };
 
-// switch (shape_id) {
-//     case _VIA_RSHAPE.RECTANGLE:
-//     case _VIA_RSHAPE.CIRCLE:
-//     case _VIA_RSHAPE.ELLIPSE:
-//         switch (cp_index) {
-//             case 1: // top center
-//             case 3: // bottom center
-//                 this.input.style.cursor = 'row-resize';
-//                 break;
-//             case 2: // right center
-//             case 4: // left center
-//                 this.input.style.cursor = 'col-resize';
-//                 break;
-//             case 5: // corner top-right
-//             case 7: // corner bottom-left
-//                 this.input.style.cursor = 'nesw-resize';
-//                 break;
-//             case 6: // corner bottom-right
-//             case 8: // corner top-left
-//                 this.input.style.cursor = 'nwse-resize';
-//                 break;
-//         }
-//         break;
-//     case _VIA_RSHAPE.EXTREME_RECTANGLE:
-//     case _VIA_RSHAPE.EXTREME_CIRCLE:
-//     case _VIA_RSHAPE.POINT:
-//     case _VIA_RSHAPE.LINE:
-//     case _VIA_RSHAPE.POLYGON:
-//     case _VIA_RSHAPE.POLYLINE:
-//         this.input.style.cursor = 'crosshair';
-//     // fall through and show message if it is polygon or polyline
-//     case _VIA_RSHAPE.POLYGON:
-//     case _VIA_RSHAPE.POLYLINE:
-//         _via_util_msg_show(
-//             'To move vertex, simply drag the vertex. To add vertex, press [Ctrl] key and click on the edge. To delete vertex, press [Ctrl] (or [Command]) key and click on vertex.'
-//         );
-//         break;
-// }
+export const onResizeDrag = ({
+  mouseX,
+  mouseY,
+  resizeDirection,
+  selectedRegion,
+}: {
+  selectedRegion: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  mouseX: number;
+  mouseY: number;
+  resizeDirection: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+}) => {
+  const oldX = selectedRegion.x;
+  const oldY = selectedRegion.y;
+  // 0  1  2
+  // 3     4
+  // 5  6  7
+  switch (resizeDirection) {
+    case 0:
+      selectedRegion.x = mouseX;
+      selectedRegion.y = mouseY;
+      selectedRegion.width += oldX - mouseX;
+      selectedRegion.height += oldY - mouseY;
+      break;
+    case 1:
+      selectedRegion.y = mouseY;
+      selectedRegion.height += oldY - mouseY;
+      break;
+    case 2:
+      selectedRegion.y = mouseY;
+      selectedRegion.width = mouseX - oldX;
+      selectedRegion.height += oldY - mouseY;
+      break;
+    case 3:
+      selectedRegion.x = mouseX;
+      selectedRegion.width += oldX - mouseX;
+      break;
+    case 4:
+      selectedRegion.width = mouseX - oldX;
+      break;
+    case 5:
+      selectedRegion.x = mouseX;
+      selectedRegion.width += oldX - mouseX;
+      selectedRegion.height = mouseY - oldY;
+      break;
+    case 6:
+      selectedRegion.height = mouseY - oldY;
+      break;
+    case 7:
+      selectedRegion.width = mouseX - oldX;
+      selectedRegion.height = mouseY - oldY;
+      break;
+  }
+};
+
+export const getSelection = () => {};

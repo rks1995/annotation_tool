@@ -250,12 +250,6 @@ const Canvas = () => {
       const currentX = event.nativeEvent.offsetX;
       const currentY = event.nativeEvent.offsetY;
       if (currentX !== startX && currentY !== startY) {
-        if (isDraggingSelectedRegion) {
-          setDeltaX(currentX - startX);
-          setDeltaY(currentY - startY);
-
-          return;
-        }
         setSelectedRegions([]);
         setDeltaX(currentX - startX);
         setDeltaY(currentY - startY);
