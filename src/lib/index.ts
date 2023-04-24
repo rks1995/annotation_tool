@@ -99,14 +99,13 @@ export const drawCircleRegion = ({
 export const cregIsInside = ({
   cx,
   cy,
-  tolerance,
   xy,
 }: {
   // shape, x-co-ordinate, y-co-ordinate, width, height
-  xy: [number, number, number, number, number];
+  xy: number[];
   cx: number;
   cy: number;
-  tolerance: number;
+  tolerance?: number;
 }) => {
   const shapeId = xy[0];
   var isInside = false;
@@ -126,32 +125,6 @@ export const cregIsInside = ({
 
   return isInside;
 };
-
-// export const cregIsOnSelRegionCp = function (cx, cy, tolerance) {
-//     var n = this.selected_mid_list.length;
-//     var mid;
-//     var sel_region_cp = [-1, -1, '']; // [ metadata_index, control_point_index, type = {cp, edge} ]
-//     for (var i = 0; i < n; ++i) {
-//         mid = this.selected_mid_list[i];
-//         var cp_index = this._creg_is_on_control_point(this.creg[mid], cx, cy, tolerance);
-//         // is mousedown on region control point?
-//         if (cp_index !== -1) {
-//             sel_region_cp = [i, cp_index, 'cp'];
-//             break;
-//         } else {
-//             // for polyline and polygon, check if it is on the edge
-//             var shape_id = this.creg[mid][0];
-//             if (shape_id === _VIA_RSHAPE.POLYLINE || shape_id === _VIA_RSHAPE.POLYGON) {
-//                 var edge_index = this._creg_is_on_polygon_edge(this.creg[mid], cx, cy, tolerance);
-//                 if (edge_index !== -1) {
-//                     sel_region_cp = [i, edge_index, 'edge'];
-//                     break;
-//                 }
-//             }
-//         }
-//     }
-//     return sel_region_cp;
-// };
 
 // switch (shape_id) {
 //     case _VIA_RSHAPE.RECTANGLE:

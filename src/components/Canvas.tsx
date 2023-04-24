@@ -3,8 +3,6 @@ import invoice from '../assets/invoice.jpg';
 import { _RAP_TOOL_SPATIAL_REGION_MOVE_DELTA } from '../constants';
 import { cregIsInside, drawRectRegion } from '../lib';
 
-// CONSTANTS
-
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scale, setScale] = useState(1);
@@ -25,6 +23,8 @@ const Canvas = () => {
     }[]
   >([]);
   const [selectedRegions, setSelectedRegions] = useState<number[]>([]);
+  const [isDraggingSelectedRegion, setIsDraggingSelectedRegion] =
+    useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -63,7 +63,7 @@ const Canvas = () => {
         });
       };
     }
-  }, [isDragging, deltaX, deltaY, boundingBoxes, selectedRegions]);
+  }, [isDragging, boundingBoxes, selectedRegions]);
 
   function handleZoomIn() {
     setScale(scale * 1.2);
@@ -142,17 +142,40 @@ const Canvas = () => {
     if (!disableDocMovement) {
       setIsDragging(true);
     } else {
-      const x = event.nativeEvent.offsetX;
-      const y = event.nativeEvent.offsetY;
+      const cx = event.nativeEvent.offsetX;
+      const cy = event.nativeEvent.offsetY;
+
+      // Test if any shape is under the mouse. If a shape is under the mouse, the user is intending to drag that shape
+      const isMouseUnderSelectedRegion = selectedRegions.some((_regionIdx) => {
+        if (_regionIdx < 0) return false;
+
+        const isInside = cregIsInside({
+          xy: [2, ...Object.values(boundingBoxes[_regionIdx])],
+          cx,
+          cy,
+          tolerance: 1,
+        });
+        return isInside;
+      });
+
+      if (isMouseUnderSelectedRegion) {
+        setIsDraggingSelectedRegion(true);
+        setIsDrawing(false);
+        setIsDragging(false);
+        setStartX(cx);
+        setStartY(cy);
+        return;
+      }
+
       setIsDrawing(true);
-      setStartX(x);
-      setStartY(y);
+      setStartX(cx);
+      setStartY(cy);
     }
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLCanvasElement>) {
     event.preventDefault();
-    // event.stopPropagation();
+    event.stopPropagation();
     if (
       event.key === 'ArrowLeft' ||
       event.key === 'ArrowRight' ||
@@ -161,8 +184,8 @@ const Canvas = () => {
     ) {
       if (selectedRegions.length) {
         // move selected region
-        var cdx = 0;
-        var cdy = 0;
+        let cdx = 0;
+        let cdy = 0;
         switch (event.key) {
           case 'ArrowLeft':
             cdx = -1;
@@ -201,6 +224,7 @@ const Canvas = () => {
         const newBoxes = boundingBoxes.filter(
           (_, index) => !selectedRegions.includes(index)
         );
+        setSelectedRegions([]);
         setBoundingBoxes(newBoxes);
       }
     }
@@ -225,10 +249,27 @@ const Canvas = () => {
     if (isDrawing) {
       const currentX = event.nativeEvent.offsetX;
       const currentY = event.nativeEvent.offsetY;
-      if (currentX !== startX && currentY !== deltaY) {
+      if (currentX !== startX && currentY !== startY) {
+        if (isDraggingSelectedRegion) {
+          setDeltaX(currentX - startX);
+          setDeltaY(currentY - startY);
+
+          return;
+        }
         setSelectedRegions([]);
         setDeltaX(currentX - startX);
         setDeltaY(currentY - startY);
+      }
+    } else {
+      const currentX = event.nativeEvent.offsetX;
+      const currentY = event.nativeEvent.offsetY;
+      if (currentX !== startX && currentY !== startY) {
+        if (isDraggingSelectedRegion) {
+          setDeltaX(currentX - startX);
+          setDeltaY(currentY - startY);
+
+          return;
+        }
       }
     }
   }
@@ -246,6 +287,25 @@ const Canvas = () => {
       };
       setSelectedRegions([]);
       setBoundingBoxes([...boundingBoxes, boxObject]);
+    } else if (startX !== currentX && startY !== currentY) {
+      // The user is intending to stop the drag operation, so clear the "isDraggingSelectedRegion" flag. Dragging is completed.
+      if (isDraggingSelectedRegion) {
+        setBoundingBoxes((_prevState) =>
+          _prevState.map((_box, idx) => {
+            if (selectedRegions.includes(idx)) {
+              return {
+                ..._box,
+                x: _box.x + deltaX,
+                y: _box.y + deltaY,
+              };
+            } else {
+              return _box;
+            }
+          })
+        );
+        setIsDraggingSelectedRegion(false);
+        return;
+      }
     }
     setIsDragging(false);
     setIsDrawing(false);
@@ -257,6 +317,7 @@ const Canvas = () => {
 
   function resetOnGoingDraw() {
     // reset all the coordinates to 0 when region is selected
+    setIsDrawing(false);
     setStartX(0);
     setStartY(0);
     setDeltaX(0);
@@ -285,7 +346,6 @@ const Canvas = () => {
         onMouseUp={handleMouseUp}
         onClick={selectRegion}
         onKeyDown={handleKeyDown}
-        onResize={(e) => console.log(e)}
       />
       <div
         style={{
